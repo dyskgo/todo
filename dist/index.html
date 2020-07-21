@@ -1,0 +1,566 @@
+<!DOCTYPE html> 
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Tudu</title>
+    <!--<link rel="stylesheet" type="text/css" href="styles.css">-->
+    <style> 
+    /* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+#banner {
+  background-color: blue; 
+  width: 100%; 
+  height: 80px; 
+  margin-bottom: 50px; 
+}
+
+#container {
+  margin: 0 auto;
+  width: 90%; 
+  display: grid; 
+  padding: 1rem;
+  grid-template-columns: 30% 70%;
+  gap: 1rem; 
+}
+
+#projects {
+  grid-column-start: 1; 
+  grid-column-end: 2;
+  min-height: 100px; 
+  display: grid; 
+  grid-template-columns: 1fr;
+  grid-template-rows: auto; 
+}
+
+#tudus {
+  grid-column-start: 2; 
+  grid-column-end: 3; 
+  min-height: 100px; 
+  padding: 2rem;
+  display: grid; 
+  grid-template-columns: 1fr; 
+  grid-template-rows: auto; 
+}
+
+#projects, #tudus {
+  border: 1px solid black; 
+}
+
+.project {
+  width: 100%; 
+  background-color: gray; 
+  border: 1px solid black; 
+  height: 20px;
+}
+
+.selected-project {
+  background-color: pink; 
+}
+
+#projects-header { 
+  background-color: slategray; 
+  text-align: center; 
+  display: flex; 
+  flex-direction: row; 
+  justify-content: space-between; 
+}
+
+#tudu-container {
+  position: relative; 
+}
+
+#tudu-button {
+  position: absolute; 
+  top: 15px; 
+  right: 15px; 
+}
+
+.tudu {
+  border: 1px solid black;
+  height: 80px; 
+  background-color: bisque; 
+}
+
+#project-form, #tudu-form {
+  visibility: hidden; 
+}
+
+    
+    </style>
+  </head>
+  <body>
+    <div id="banner"></div>
+    <div id="container">
+        <div id="project-container">
+          <div id="projects-header">
+            <div></div>
+            <h3>Projects</h3>
+            <a id="project-button">+</a>
+          </div>
+          <div id="projects">
+            <div id="all-projects" class="project">All Projects</div>
+          </div>
+        </div>
+        <div id="tudu-container">
+          <a id="tudu-button">+</a>
+          <div id="tudus">
+            <div class="tudu">
+              <h3>Task Name</h3>
+              <p>Description</p>
+              <a>Date</a>
+              <a>Prioity</a>
+              <a>Complete</a>
+              <a>Edit</a>
+              <a>Delete</a>
+            </div>
+          </div>
+        </div>
+    </div>
+    <form id="project-form" action="" method="post">
+      <label for="project-name">Project Name</label>
+      <input type="text" id="project-name" name="project-name" required>
+      <input type="submit" value="Submit" id="project-submit"> 
+      <button id="project-cancel">Cancel</button>
+    </form>
+    <form id="tudu-form" action="" method="post">
+      <label for="tudu-name">Name</label>
+      <input type="text" id="tudu-name" name="tudu-name" required>
+      <label for="tudu-description">Description</label>
+      <input type="text" id="tudu-description" name="tudu-description" required>
+      <label for="tudu-date">Date</label>
+      <input type="date" id="tudu-date" name="tudu-date" required>
+      <label for="tudu-priority">Priority</label>
+      <input type="range" id="tudu-priority" name="tudu-priority" min="0" max="3" required>
+      <input type="submit" value="Submit" id="tudu-submit"> 
+      <button id="tudu-cancel">Cancel</button>
+    </form>
+    <script>
+
+    //Event Delegation
+    function getEventTarget(e) {
+      e = e || window.event; 
+      return e.target || e.srcElement; 
+    }
+
+    //Global Variables
+    let projectButton = document.getElementById('project-button');
+    let form1 = document.getElementById('project-form');
+    let form2 = document.getElementById('tudu-form');
+    let submitProject = document.getElementById('project-submit');
+    let cancelProject = document.getElementById('project-cancel');
+    let projectName = document.getElementById('project-name');
+    let projectsDOM = document.getElementById('projects');
+    let tuduButton = document.getElementById('tudu-button'); 
+    let cancelTudu = document.getElementById('tudu-cancel'); 
+    let submitTudu = document.getElementById('tudu-submit');
+    let tuduName = document.getElementById('tudu-name'); 
+    let tuduDescription = document.getElementById('tudu-description'); 
+    let tuduDate = document.getElementById('tudu-date');
+    let tuduPriority = document.getElementById('tudu-priority'); 
+    let tuduDOM = document.getElementById('tudus'); 
+
+    
+    //Project Array
+    let projects = []; 
+
+    //Factory Function for Creating Tudus
+    function tuduFactory(title, description, dueDate, priority, project) {
+
+      return {
+        title, 
+        description, 
+        dueDate, 
+        priority, 
+        project, 
+        complete: 'no'
+      }
+    }
+
+    //Function for Creating Projects
+    function projectFactory(title) {
+
+      let projArr = []; 
+
+      return {
+        title,
+        projArr
+      }
+    }
+
+    //Function for Creating Project Div
+    function createProjectDiv() {
+      let div = document.createElement('div'); 
+      div.classList.add('project'); 
+      div.id = `projects.${[i]}`; 
+      div.dataset.index = [i];
+      projectsDOM.appendChild(div);
+    }
+
+    //Function for Creating Project Name
+    function createProjectName() {
+      let h3 = document.createElement('h3'); 
+      let div = document.getElementById(`projects.${[i]}`); 
+      h3.innerHTML = projects[i].title; 
+      h3.dataset.index = [i]; 
+      div.appendChild(h3); 
+    }
+
+    //Function for Creating Project Delete Button 
+    function createProjectDelete() {
+      let div = document.getElementById(`projects.${[i]}`);
+      let deleteButton = document.createElement('a'); 
+      deleteButton.innerHTML = 'X';
+      deleteButton.classList = 'delete'; 
+      deleteButton.dataset.index = [i];
+      div.appendChild(deleteButton)
+    }
+
+    //Function for Creating Project Delete Button 
+    function createProjectEdit() {
+      let div = document.getElementById(`projects.${[i]}`);
+      let editButton = document.createElement('a'); 
+      editButton.innerHTML = 'E';
+      editButton.classList = 'edit'; 
+      editButton.dataset.index = [i];
+      div.appendChild(editButton)
+    }
+
+
+    //Function to Execute Edit or Delete
+    function alterProjects(e) {
+      let target = getEventTarget(e);
+      let num = target.dataset.index; 
+      if (target.className === 'delete') {
+         let deletedProject = document.getElementById(`projects.${num}`); 
+         if (deletedProject.classList.contains('selected-project')) {
+           deletedProject.classList.remove('selected-project'); 
+           document.getElementById('all-projects').classList.add('selected-project');
+         }
+         projects.splice(num, 1);
+         while (projectsDOM.children.length > 1) {
+          projectsDOM.removeChild(projectsDOM.lastChild);
+         }
+         render(projects); 
+         while (tuduDOM.firstChild) {
+            tuduDOM.removeChild(tuduDOM.lastChild);
+          }
+          let arr = []; 
+            for (i = 0; i < projects.length; i++) {
+              projects[i].projArr.forEach(x => {
+                arr.push(x);
+              });
+            }
+            renderTudus(arr);
+      } else if (target.className === 'edit') {
+          submitProject.dataset.index = num;
+          form.formAppear(form1);
+      } else {
+        let c = projectsDOM.children;
+          for (i = 0; i < c.length; i++) {
+            if (c[i].classList.contains('selected-project')) {
+              c[i].classList.remove('selected-project');
+            }
+          }
+          let t; 
+          if (num === undefined) {
+            t = document.getElementById('all-projects');
+          } else {
+            t = document.getElementById(`projects.${num}`);
+          } 
+          t.classList.add('selected-project'); 
+          while (tuduDOM.firstChild) {
+            tuduDOM.removeChild(tuduDOM.lastChild);
+          }
+          if (num === undefined) {
+            let arr = []; 
+            for (i = 0; i < projects.length; i++) {
+              projects[i].projArr.forEach(x => {
+                arr.push(x);
+              });
+            }
+            renderTudus(arr);
+          } else {
+            renderTudus(projects[num].projArr); 
+          }
+      }
+    }
+
+    //Function to Alter Tudus
+    function alterTudus(e) {
+      let target = getEventTarget(e);
+      let num = target.dataset.index; 
+      if (target.classList.contains('delete')) {
+        let project = document.getElementsByClassName('selected-project'); 
+        let num = project[0].projArr.splice()
+      }
+    }
+
+    //Render Projects
+    function render(projects) {
+      for (i = 0; i < projects.length; i++) {
+        createProjectDiv(); 
+        createProjectName(); 
+        createProjectDelete();
+        createProjectEdit(); 
+      }
+    }
+
+    function createTudu(event, form) {
+      let name = tuduName.value; 
+      let description = tuduDescription.value; 
+      let dateX = tuduDate.value; 
+      let priority = tuduPriority.value; 
+      let selectedProject = document.getElementsByClassName('selected-project'); 
+      let num = selectedProject[0].dataset.index;  
+      let project = selectedProject[0].id; 
+      console.log(project)
+      let tudu = tuduFactory(name, description, dateX, priority, project); 
+      let tudus = projects[num].projArr; 
+      console.log(projects[num]);
+      console.log(tudus);
+      tudus.push(tudu)
+      while (tuduDOM.firstChild) {
+          tuduDOM.removeChild(tuduDOM.lastChild);
+         }
+      renderTudus(tudus); 
+      form.reset(); 
+      event.preventDefault();
+    }
+
+    function renderTudus(tudus) {
+      for (i = 0; i < tudus.length; i++) {
+        createTuduDiv(); 
+        createTuduName(tudus); 
+        createTuduDescription(tudus); 
+        createTuduDate(tudus); 
+        createTuduPriority(tudus); 
+        createTuduComplete(tudus); 
+        createTuduDelete();
+      }
+    }
+
+    function createTuduDiv() {
+      let div = document.createElement('div'); 
+      div.classList.add('tudu');
+      div.id = `tudu.${[i]}`;  
+      tuduDOM.appendChild(div); 
+    }
+
+    function createTuduName(tudus) {
+      let div = document.getElementById(`tudu.${[i]}`); 
+      let h3 = document.createElement('h3');
+      h3.innerHTML = tudus[i].title;
+      div.appendChild(h3); 
+    }
+
+    function createTuduDescription(tudus) {
+      let div = document.getElementById(`tudu.${[i]}`); 
+      let p = document.createElement('p');
+      p.innerHTML = tudus[i].description; 
+      div.appendChild(p); 
+    }
+
+    function createTuduDate(tudus) {
+      let div = document.getElementById(`tudu.${[i]}`); 
+      let a = document.createElement('a');
+      a.innerHTML = tudus[i].dueDate; 
+      div.appendChild(a); 
+    }
+
+    function createTuduPriority(tudus) {
+      let div = document.getElementById(`tudu.${[i]}`); 
+      let a = document.createElement('a');
+      a.innerHTML = tudus[i].priority; 
+      div.appendChild(a); 
+    }
+
+    function createTuduComplete(tudus) {
+      let div = document.getElementById(`tudu.${[i]}`); 
+      let a = document.createElement('a'); 
+      a.innerHTML = tudus[i].complete; 
+      div.appendChild(a); 
+    }
+
+    /*function createTuduEdit() {
+      let div = document.getElementById(`tudu.${[i]}`); 
+      let a = document.createElement('a'); 
+      a.classList.add('edit'); 
+      a.dataset.index = [i]; 
+      a.innerHTML = 'E'; 
+      div.appendChild(a); 
+    }*/
+
+    function createTuduDelete() {
+      let div = document.getElementById(`tudu.${[i]}`); 
+      let a = document.createElement('a'); 
+      a.classList.add('delete'); 
+      a.dataset.index = [i];
+      a.innerHTML = 'X'; 
+      div.appendChild(a); 
+    }
+
+
+
+    //Factory for Form
+    function formFunctions() {
+
+      function formAppear(form) {
+      form.style.visibility = 'visible';
+      }; 
+
+      function formCancel(form) {
+      form.style.visibility = 'hidden'; 
+      form.reset(); 
+    }
+
+    function formSubmitProject(event, form) {
+      if (projectName.value === '') return; 
+      if (submitProject.dataset.index) {
+        let num = submitProject.dataset.index; 
+        projects[num].title = projectName.value; 
+        submitProject.removeAttribute('data-index');
+      }
+      else {
+        let newName = projectName.value; 
+        let newProject = projectFactory(newName); 
+        projects.push(newProject); 
+      }; 
+      let selectHoldover;   
+      let chino = projectsDOM.children;  
+      for (i = 0; i < chino.length; i++) {  
+        if (chino[i].classList.contains('selected-project')) { 
+          selectHoldover = i; 
+        }
+      }
+      while (projectsDOM.children.length > 1) {
+        projectsDOM.removeChild(projectsDOM.lastChild); 
+      }
+      render(projects); 
+      if (selectHoldover >= 0) {
+        projectsDOM.children[selectHoldover].classList.add('selected-project'); 
+      }
+      form.reset(); 
+      event.preventDefault();
+    }
+
+    return { formAppear, formCancel, formSubmitProject }
+
+    }; 
+
+    const form = formFunctions(); 
+
+    function projectFormAppear() {
+      form.formAppear(form1);
+    }
+
+    function projectFormCancel() {
+      form.formCancel(form1);
+    }
+
+    function projectFormSubmit(e) {
+      form.formSubmitProject(e, form1); 
+      form.formCancel(form1); 
+    }
+
+    function tuduFormAppear() {
+      if (projects.length === 0) return; 
+      form.formAppear(form2); 
+    }
+
+    function tuduFormCancel() {
+      form.formAppear(form2); 
+    }
+
+    function tuduFormSubmit(e) {
+      if (document.getElementById('all-projects').classList.contains('selected-project')) return;
+      createTudu(e, form2);
+      form.formCancel(form2); 
+    }
+
+    //Event Listener - Adding Projects
+    projectButton.addEventListener('click', projectFormAppear); 
+
+    //Event Listener for Canceling Project Form
+    cancelProject.addEventListener("click", projectFormCancel);
+
+    //Event Listener for Submitting a Project
+    submitProject.addEventListener('click', projectFormSubmit);
+
+    //Event Listener for Projects List
+    projectsDOM.addEventListener('click', alterProjects);
+
+    //Event Listener - Adding a Tudu
+    tuduButton.addEventListener('click', tuduFormAppear); 
+
+    //Event Listener for Canceling Tudu Form 
+    cancelTudu.addEventListener('click', tuduFormCancel); 
+
+    //Event Listener for Creating the Tudu
+    submitTudu.addEventListener('click', tuduFormSubmit); 
+
+    //Event Listener for Tudu List
+    tuduDOM.addEventListener('click', alterTudus); 
+
+
+
+
+    
+
+    
+
+
+    
+
+    
+
+    </script>
+    <script src="main.js"></script>
+  </body>
+</html>
