@@ -335,10 +335,42 @@ table {
     //Function to Alter Tudus
     function alterTudus(e) {
       let target = getEventTarget(e);
-      let num = target.dataset.index; 
+      let num = target.dataset.index; //Won't work - need project's dataset.index
+      let projectFake = document.getElementsByClassName('selected-project');
+      let project = projectFake[0]; 
       if (target.classList.contains('delete')) {
-        let project = document.getElementsByClassName('selected-project'); 
-        let num = project[0].projArr.splice()
+        if (project.id !== 'all-projects') {
+          let projNum = project.dataset.index; 
+          projects[projNum].projArr.splice(num, 1); 
+          while (tuduDOM.firstChild) {
+            tuduDOM.removeChild(tuduDOM.lastChild);
+          }
+          renderTudus(projects[projNum].projArr); 
+        } else {
+            let arr = []; 
+            for (i = 0; i < projects.length; i++) {
+              projects[i].projArr.forEach(x => {
+                arr.push(x);
+              });
+            }
+            let projectCategory = arr[num].project; 
+            let startingIndex = arr.findIndex((x) => {
+              return x.project === projectCategory; 
+            });
+            let tuduDataIndex = num - startingIndex; 
+            let projectDataIndex = projectCategory.slice(9);
+            projects[projectDataIndex].projArr.splice(tuduDataIndex, 1); 
+            while (tuduDOM.firstChild) {
+              tuduDOM.removeChild(tuduDOM.lastChild);
+            }
+            arr = []; 
+            for (i = 0; i < projects.length; i++) {
+              projects[i].projArr.forEach(x => {
+                arr.push(x);
+              });
+            }
+            renderTudus(arr); 
+        }
       }
     }
 
@@ -360,11 +392,8 @@ table {
       let selectedProject = document.getElementsByClassName('selected-project'); 
       let num = selectedProject[0].dataset.index;  
       let project = selectedProject[0].id; 
-      console.log(project)
       let tudu = tuduFactory(name, description, dateX, priority, project); 
       let tudus = projects[num].projArr; 
-      console.log(projects[num]);
-      console.log(tudus);
       tudus.push(tudu)
       while (tuduDOM.firstChild) {
           tuduDOM.removeChild(tuduDOM.lastChild);
