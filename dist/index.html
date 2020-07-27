@@ -132,7 +132,9 @@ table {
   visibility: hidden; 
 }
 
-    
+.hidden {
+  visibility: hidden; 
+}
     </style>
   </head>
   <body>
@@ -371,7 +373,66 @@ table {
             }
             renderTudus(arr); 
         }
+      } else if (target.classList.contains('edit')) {
+            let editableTudu = tuduDOM.children[num];
+            for (i = 0; i < 3; i++) {
+              editableTudu.children[i].classList.add('hidden');
+            } 
+            createEditForm(editableTudu); 
+            document.getElementById('edit-tudu').addEventListener('click', editFormSubmit); 
+                    
       }
+    }
+
+    //Creates a Tudu Edit Form 
+    function createEditForm(parent) {
+      createEditFormTag(parent); 
+      createEditTitle();
+      createEditDescription(); 
+      createEditDate();
+      createEditSubmit();
+    }
+
+    function createEditFormTag(parent) {
+      let form = document.createElement('form'); 
+      form.id = 'edit-form';
+      parent.insertBefore(form, parent.children[0]); 
+    }
+
+    function createEditTitle() {
+      //let label = document.createElement('label'); 
+      let input = document.createElement('input'); 
+      //label.setAttribute('for', 'edit-title'); 
+      input.setAttribute('id', 'edit-title'); 
+      input.setAttribute('name', 'edit-title'); 
+      input.setAttribute('type', 'text'); 
+      let form = document.getElementById('edit-form');
+      //form.appendChild(label);
+      form.appendChild(input); 
+    }
+
+    function createEditDescription() {
+      let input = document.createElement('input'); 
+      input.setAttribute('id', 'edit-description');
+      input.setAttribute('type', 'text'); 
+      let form = document.getElementById('edit-form'); 
+      form.appendChild(input); 
+    }
+
+    function createEditDate() {
+      let input = document.createElement('input'); 
+      input.setAttribute('id', 'edit-date');
+      input.setAttribute('type', 'date');
+      let form = document.getElementById('edit-form'); 
+      form.appendChild(input); 
+    }
+
+    function createEditSubmit() {
+      let input = document.createElement('input');
+      input.setAttribute('id', 'edit-tudu');  
+      input.setAttribute('type', 'submit');
+      let form = document.getElementById('edit-form'); 
+      form.appendChild(input); 
     }
 
     //Render Projects
@@ -403,6 +464,53 @@ table {
       event.preventDefault();
     }
 
+    function editTudu(event, form) {
+      let title = document.getElementById('edit-title').value;
+      let description = document.getElementById('edit-description').value; 
+      let date = document.getElementById('edit-date').value; 
+      let projectFake = document.getElementsByClassName('selected-project');
+      let project = projectFake[0]; 
+      let num = document.getElementById('edit-form').parentElement.dataset.index; 
+      if (project.id !== 'all-projects') {
+        let projNum = project.dataset.index; 
+        projects[projNum].projArr[num].title = title; 
+        projects[projNum].projArr[num].description = description; 
+        projects[projNum].projArr[num].date = date; 
+        while (tuduDOM.firstChild) {
+            tuduDOM.removeChild(tuduDOM.lastChild);
+          }
+        renderTudus(projects[projNum].projArr);  
+      } else {
+          let arr = []; 
+          for (i = 0; i < projects.length; i++) {
+            projects[i].projArr.forEach(x => {
+              arr.push(x);
+            });
+          }
+          let projectCategory = arr[num].project; 
+          let startingIndex = arr.findIndex((x) => {
+            return x.project === projectCategory; 
+          });
+          let tuduDataIndex = num - startingIndex; 
+          let projectDataIndex = projectCategory.slice(9);
+          projects[projectDataIndex].projArr[tuduDataIndex].title = title; 
+          projects[projectDataIndex].projArr[tuduDataIndex].description = description; 
+          projects[projectDataIndex].projArr[tuduDataIndex].date = date; 
+          while (tuduDOM.firstChild) {
+            tuduDOM.removeChild(tuduDOM.lastChild);
+          }
+          arr = []; 
+            for (i = 0; i < projects.length; i++) {
+              projects[i].projArr.forEach(x => {
+                arr.push(x);
+              });
+            }
+            renderTudus(arr);  
+      }
+      form.reset(); 
+      event.preventDefault();
+    }
+
     function renderTudus(tudus) {
       for (i = 0; i < tudus.length; i++) {
         createTuduDiv(); 
@@ -411,6 +519,7 @@ table {
         createTuduDate(tudus); 
         createTuduPriority(tudus); 
         createTuduComplete(tudus); 
+        createTuduEdit(); 
         createTuduDelete();
       }
     }
@@ -419,12 +528,14 @@ table {
       let div = document.createElement('div'); 
       div.classList.add('tudu');
       div.id = `tudu.${[i]}`;  
+      div.dataset.index = [i]; 
       tuduDOM.appendChild(div); 
     }
 
     function createTuduName(tudus) {
       let div = document.getElementById(`tudu.${[i]}`); 
       let h3 = document.createElement('h3');
+      console.log(tudus[i].title);
       h3.innerHTML = tudus[i].title;
       div.appendChild(h3); 
     }
@@ -457,14 +568,14 @@ table {
       div.appendChild(a); 
     }
 
-    /*function createTuduEdit() {
+    function createTuduEdit() {
       let div = document.getElementById(`tudu.${[i]}`); 
       let a = document.createElement('a'); 
       a.classList.add('edit'); 
       a.dataset.index = [i]; 
-      a.innerHTML = 'E'; 
+      a.innerHTML = '!EDIT!'; 
       div.appendChild(a); 
-    }*/
+    }
 
     function createTuduDelete() {
       let div = document.getElementById(`tudu.${[i]}`); 
@@ -500,21 +611,13 @@ table {
         let newName = projectName.value; 
         let newProject = projectFactory(newName); 
         projects.push(newProject); 
-      }; 
-      let selectHoldover;   
+      };   
       let chino = projectsDOM.children;  
-      for (i = 0; i < chino.length; i++) {  
-        if (chino[i].classList.contains('selected-project')) { 
-          selectHoldover = i; 
-        }
-      }
       while (projectsDOM.children.length > 1) {
         projectsDOM.removeChild(projectsDOM.lastChild); 
       }
       render(projects); 
-      if (selectHoldover >= 0) {
-        projectsDOM.children[selectHoldover].classList.add('selected-project'); 
-      }
+      chino[chino.length - 1].classList.add('selected-project');
       form.reset(); 
       event.preventDefault();
     }
@@ -547,10 +650,16 @@ table {
       form.formAppear(form2); 
     }
 
+
     function tuduFormSubmit(e) {
       if (document.getElementById('all-projects').classList.contains('selected-project')) return;
       createTudu(e, form2);
       form.formCancel(form2); 
+    }
+
+    function editFormSubmit(e) {
+      let editForm = document.getElementById('edit-form');
+      editTudu(e, editForm);
     }
 
     //Event Listener - Adding Projects
